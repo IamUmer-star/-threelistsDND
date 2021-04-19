@@ -1,34 +1,29 @@
-import React, { useState } from "react";
-import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
-import { v4 as uuidv4 } from 'uuid';
+import React, {useCallback, useState} from "react";
+import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
+import {v4 as uuidv4} from 'uuid';
 
-const itemsFromBackend = [
-    { id: uuidv4(), content: "First task" },
-    { id: uuidv4(), content: "Second task" },
-    { id: uuidv4(), content: "Third task" },
-    { id: uuidv4(), content: "Fourth task" },
-    { id: uuidv4(), content: "Fifth task" }
-];
+const getSampleItems = () => {
+    return [
+        {id: uuidv4(), content: "First task"},
+        {id: uuidv4(), content: "Second task"},
+        {id: uuidv4(), content: "Third task"},
+        {id: uuidv4(), content: "Fourth task"},
+    ]
+}
 
-const columnsFromBackend = {
-    [uuidv4()]: {
-        name: "Ist list ",
-        items: itemsFromBackend
-    },
-    [uuidv4()]: {
-        name: "2nd List",
-        items: [{ id: uuidv4(), content: "SeconListtask" }]
-    },
-    [uuidv4()]: {
-        name: "3rd List",
-        items: [{ id: uuidv4(), content: "ThirdListTasks" }]
-    },
+const getFreshOrigin = () => {
+    const uuid = uuidv4()
+    return {
+        [uuid]: {
+            name: uuid,
+            items: []
+        }
+    }
 
-};
-
+}
 const onDragEnd = (result, columns, setColumns) => {
     if (!result.destination) return;
-    const { source, destination } = result;
+    const {source, destination} = result;
 
     if (source.droppableId !== destination.droppableId) {
         const sourceColumn = columns[source.droppableId];
@@ -64,82 +59,100 @@ const onDragEnd = (result, columns, setColumns) => {
 };
 
 function App() {
-    const [columns, setColumns] = useState(columnsFromBackend);
+
+    const [columns, setColumns] = useState({
+        [uuidv4()]: {
+            name: "Main Orign",
+            items: getSampleItems()
+        },
+    });
+
+    const addNewOrigin = useCallback(() => {
+        setColumns({
+            ...columns,
+            ...getFreshOrigin()
+        });
+    }, [setColumns, columns]);
+
     return (
-        <div style={{ display: "flex", justifyContent: "center", height: "100%" }}>
-            <DragDropContext
-                onDragEnd={result => onDragEnd(result, columns, setColumns)}
-            >
-                {Object.entries(columns).map(([columnId, column], index) => {
-                    return (
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center"
-                            }}
-                            key={columnId}
-                        >
-                            <h2>{column.name}</h2>
-                            <div style={{ margin: 8 }}>
-                                <Droppable droppableId={columnId} key={columnId}>
-                                    {(provided, snapshot) => {
-                                        return (
-                                            <div
-                                                {...provided.droppableProps}
-                                                ref={provided.innerRef}
-                                                style={{
-                                                    background: snapshot.isDraggingOver
-                                                        ? "lightblue"
-                                                        : "lightgrey",
-                                                    padding: 4,
-                                                    width: 250,
-                                                    minHeight: 500
-                                                }}
-                                            >
-                                                {column.items.map((item, index) => {
-                                                    return (
-                                                        <Draggable
-                                                            key={item.id}
-                                                            draggableId={item.id}
-                                                            index={index}
-                                                        >
-                                                            {(provided, snapshot) => {
-                                                                return (
-                                                                    <div
-                                                                        ref={provided.innerRef}
-                                                                        {...provided.draggableProps}
-                                                                        {...provided.dragHandleProps}
-                                                                        style={{
-                                                                            userSelect: "none",
-                                                                            padding: 16,
-                                                                            margin: "0 0 8px 0",
-                                                                            minHeight: "50px",
-                                                                            backgroundColor: snapshot.isDragging
-                                                                                ? "#263B4A"
-                                                                                : "#456C86",
-                                                                            color: "white",
-                                                                            ...provided.draggableProps.style
-                                                                        }}
-                                                                    >
-                                                                        {item.content}
-                                                                    </div>
-                                                                );
-                                                            }}
-                                                        </Draggable>
-                                                    );
-                                                })}
-                                                {provided.placeholder}
-                                            </div>
-                                        );
-                                    }}
-                                </Droppable>
+        <>
+            <button onClick={addNewOrigin}>Add New Origin</button>
+            <div style={{display: "flex", justifyContent: "center", height: "100%"}}>
+
+                <DragDropContext
+                    onDragEnd={result => onDragEnd(result, columns, setColumns)}
+                >
+                    {Object.entries(columns).map(([columnId, column], index) => {
+                        return (
+                            <div
+                                style={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center"
+                                }}
+                                key={columnId}
+                            >
+                                <p style={{color:'green', fontWeight:'bold',margin:5}}>{column.name}</p>
+                                <div style={{margin: 8}}>
+                                    <Droppable droppableId={columnId} key={columnId}>
+                                        {(provided, snapshot) => {
+                                            return (
+                                                <div
+                                                    {...provided.droppableProps}
+                                                    ref={provided.innerRef}
+                                                    style={{
+                                                        background: snapshot.isDraggingOver
+                                                            ? "lightblue"
+                                                            : "lightgrey",
+                                                        padding: 4,
+                                                        width: 250,
+                                                        minHeight: 500
+                                                    }}
+                                                >
+                                                    {column.items.map((item, index) => {
+                                                        return (
+                                                            <Draggable
+                                                                key={item.id}
+                                                                draggableId={item.id}
+                                                                index={index}
+                                                            >
+                                                                {(provided, snapshot) => {
+                                                                    return (
+                                                                        <div
+                                                                            ref={provided.innerRef}
+                                                                            {...provided.draggableProps}
+                                                                            {...provided.dragHandleProps}
+                                                                            style={{
+                                                                                userSelect: "none",
+                                                                                padding: 16,
+                                                                                margin: "0 0 8px 0",
+                                                                                minHeight: "50px",
+                                                                                backgroundColor: snapshot.isDragging
+                                                                                    ? "#263B4A"
+                                                                                    : "#456C86",
+                                                                                color: "white",
+                                                                                ...provided.draggableProps.style
+                                                                            }}
+                                                                        >
+                                                                            {item.content}
+                                                                        </div>
+                                                                    );
+                                                                }}
+                                                            </Draggable>
+                                                        );
+                                                    })}
+                                                    {provided.placeholder}
+                                                </div>
+                                            );
+                                        }}
+                                    </Droppable>
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
-            </DragDropContext>
-        </div>
+                        );
+                    })}
+                </DragDropContext>
+            </div>
+        </>
     );
 }
 
